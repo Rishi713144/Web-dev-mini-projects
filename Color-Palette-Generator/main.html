@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Palette Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    #palette {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .color-box {
+      width: 100px;
+      height: 100px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .color-box:hover {
+      transform: scale(1.05);
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #6200ea;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px;
+    }
+    button:hover {
+      background-color: #3700b3;
+    }
+    #saved-palettes {
+      margin-top: 20px;
+      width: 100%;
+      max-width: 600px;
+    }
+    .saved-palette {
+      display: flex;
+      gap: 5px;
+      margin: 10px 0;
+      padding: 10px;
+      background-color: white;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .saved-color {
+      width: 50px;
+      height: 50px;
+      border-radius: 5px;
+    }
+    #copy-message {
+      color: green;
+      display: none;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Color Palette Generator</h1>
+  <button onclick="generatePalette()">Generate Palette</button>
+  <div id="palette"></div>
+  <button onclick="savePalette()">Save Palette</button>
+  <div id="copy-message">Color copied to clipboard!</div>
+  <h2>Saved Palettes</h2>
+  <div id="saved-palettes"></div>
+
+  <script>
+    function generateRandomColor() {
+      const letters = '0123456789ABCDEF';
+      let color = '#';
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    }
+
+    function generatePalette() {
+      const palette = document.getElementById('palette');
+      palette.innerHTML = '';
+      for (let i = 0; i < 5; i++) {
+        const color = generateRandomColor();
+        const colorBox = document.createElement('div');
+        colorBox.className = 'color-box';
+        colorBox.style.backgroundColor = color;
+        colorBox.textContent = color;
+        colorBox.onclick = () => copyToClipboard(color);
+        palette.appendChild(colorBox);
+      }
+    }
+
+    function copyToClipboard(color) {
+      navigator.clipboard.writeText(color).then(() => {
+        const message = document.getElementById('copy-message');
+        message.style.display = 'block';
+        setTimeout(() => message.style.display = 'none', 2000);
+      });
+    }
+
+    function savePalette() {
+      const palette = document.getElementById('palette').children;
+      if (palette.length === 0) return;
+      const colors = Array.from(palette).map(box => box.style.backgroundColor);
+      const savedPalettes = JSON.parse(localStorage.getItem('palettes') || '[]');
+      savedPalettes.push(colors);
+      localStorage.setItem('palettes', JSON.stringify(savedPalettes));
+      displaySavedPalettes();
+    }
+
+    function displaySavedPalettes() {
+      const savedPalettes = JSON.parse(localStorage.getItem('palettes') || '[]');
+      const container = document.getElementById('saved-palettes');
+      container.innerHTML = '';
+      savedPalettes.forEach((palette, index) => {
+        const paletteDiv = document.createElement('div');
+        paletteDiv.className = 'saved-palette';
+        palette.forEach(color => {
+          const colorBox = document.createElement('div');
+          colorBox.className = 'saved-color';
+          colorBox.style.backgroundColor = color;
+          colorBox.onclick = () => copyToClipboard(color);
+          paletteDiv.appendChild(colorBox);
+        });
+        container.appendChild(paletteDiv);
+      });
+    }
+
+    // Initialize
+    generatePalette();
+    displaySavedPalettes();
+  </script>
+</body>
+</html>
